@@ -11,11 +11,12 @@
 
 # Run "make help" for target help.
 
-MCU          = at90usb1287
+MCU          = atmega32u4
 ARCH         = AVR8
-BOARD        = USBKEY
+BOARD        = NONE
 F_CPU        = 8000000
-F_USB        = $(F_CPU)
+#F_USB        = $(F_CPU)
+F_USB		 = 16000000
 OPTIMIZATION = s
 TARGET       = BootloaderCDC
 SRC          = $(TARGET).c Descriptors.c BootloaderAPI.c BootloaderAPITable.S $(LUFA_SRC_USB)
@@ -26,8 +27,8 @@ LD_FLAGS     = -Wl,--section-start=.text=$(BOOT_START_OFFSET) $(BOOT_API_LD_FLAG
 # Flash size and bootloader section sizes of the target, in KB. These must
 # match the target's total FLASH size and the bootloader size set in the
 # device's fuses.
-FLASH_SIZE_KB         = 128
-BOOT_SECTION_SIZE_KB  = 8
+FLASH_SIZE_KB         = 32
+BOOT_SECTION_SIZE_KB  = 5
 
 # Bootloader address calculation formulas (requires the "bc" unix utility)
 # Do not modify these macros, but rather modify the depedant values above.
@@ -37,6 +38,7 @@ BOOT_SEC_OFFSET       = 0x$(shell echo "obase=16; (($(FLASH_SIZE_KB) * 1024) - $
 # Bootloader linker section flags for relocating the API table sections to
 # known FLASH addresses - these should not normally be user-edited.
 BOOT_SECTION_LD_FLAG  = -Wl,--section-start=.apitable_$(strip $(1))=$(call BOOT_SEC_OFFSET, $(3)) -Wl,--undefined=BootloaderAPI_$(strip $(2))
+#
 BOOT_API_LD_FLAGS     = $(call BOOT_SECTION_LD_FLAG, trampolines, Trampolines, 96)
 BOOT_API_LD_FLAGS    += $(call BOOT_SECTION_LD_FLAG, jumptable,   JumpTable,   32)
 BOOT_API_LD_FLAGS    += $(call BOOT_SECTION_LD_FLAG, signatures,  Signatures,  8)

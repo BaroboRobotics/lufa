@@ -11,11 +11,12 @@
 
 # Run "make help" for target help.
 
-MCU          = at90usb1287
+MCU          = atmega32u4
 ARCH         = AVR8
-BOARD        = USBKEY
+BOARD        = NONE
 F_CPU        = 8000000
-F_USB        = $(F_CPU)
+F_USB        = 16000000
+#F_USB        =$(F_CPU)
 OPTIMIZATION = s
 TARGET       = USBtoSerial
 SRC          = $(TARGET).c Descriptors.c $(LUFA_SRC_USB) $(LUFA_SRC_USBCLASS)

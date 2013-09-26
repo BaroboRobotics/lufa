@@ -35,6 +35,33 @@
 
 #include "BootloaderHID.h"
 
+////////////////////////////////
+// Added by BRB 
+#define LEDPORT PORTB
+#define LEDBLUE PB6
+#define LEDRED PB5
+#define MRSTPORT PORTB
+#define MRST PB7
+#define PWRCTRLPORT PORTD
+#define PWRCTRL PD4
+#define RXM PD3
+
+// Pin control macros
+//#define PWRBTNDN		!(PWRBTNPIN & PWRBTNMSK)
+#define PWRCTRL_ENABLE	PWRCTRLPORT |= (1<<PWRCTRL)
+#define PWRCTRL_DISABLE	PWRCTRLPORT &= ~(1<<PWRCTRL)
+#define MRST_ENABLE	MRSTPORT &= ~(1<<MRST)
+#define MRST_DISABLE	MRSTPORT |= (1<<MRST)
+#define LEDBLUE_ON		LEDPORT &= ~(1<<LEDBLUE)
+#define LEDBLUE_OFF		LEDPORT |= (1<<LEDBLUE)
+#define LEDRED_ON		LEDPORT &= ~(1<<LEDRED)
+#define LEDRED_OFF		LEDPORT |= (1<<LEDRED)
+
+static void IO_init(void);
+static void blink(uint8_t n);
+
+///////////////////////////////
+
 /** Flag to indicate if the bootloader should be running, or should exit and allow the application code to run
  *  via a soft reset. When cleared, the bootloader will abort, the USB interface will shut down and the application
  *  started via a forced watchdog reset.
@@ -70,6 +97,8 @@ void Application_Jump_Check(void)
  */
 int main(void)
 {
+	IO_init();
+	
 	/* Setup hardware required for the bootloader */
 	SetupHardware();
 
@@ -90,6 +119,41 @@ int main(void)
 
 	for (;;);
 }
+
+//////// Added by BRB
+static void IO_init(void)
+{
+  	// setup system clock prescaler to run at 8MHz
+  	CLKPR = (1<<CLKPCE);
+  	CLKPR = (1<<CLKPS0);
+	
+	// setup PORTB
+	PORTB |= (1<<LEDBLUE)|(1<<LEDRED)|(1<<MRST);
+	DDRB |= (1<<LEDBLUE)|(1<<LEDRED)|(1<<MRST);
+
+	// setup PORTD
+	PORTD |= (1<<PWRCTRL);
+	DDRD |= (1<<PWRCTRL)|(1<<RXM);
+
+	blink(5);
+	Delay_MS(3000);
+}
+
+static void blink(uint8_t n)
+{
+	LEDRED_OFF;
+
+	for (uint8_t i=0; i<n; i++) {
+		LEDBLUE_ON;
+		Delay_MS(150);
+		LEDBLUE_OFF;
+		Delay_MS(150);
+	}
+	LEDRED_ON;
+	LEDBLUE_ON;
+}
+//////////////////////
+
 
 /** Configures all hardware required for the bootloader. */
 static void SetupHardware(void)

@@ -36,6 +36,34 @@
 #define  INCLUDE_FROM_BOOTLOADERCDC_C
 #include "BootloaderCDC.h"
 
+////////////////////////////////
+// Added by BRB 
+#define LEDPORT PORTB
+#define LEDBLUE PB6
+#define LEDRED PB5
+#define MRSTPORT PORTB
+#define MRST PB7
+#define PWRCTRLPORT PORTD
+#define PWRCTRL PD4
+#define RXM PD3
+
+// Pin control macros
+//#define PWRBTNDN		!(PWRBTNPIN & PWRBTNMSK)
+#define PWRCTRL_ENABLE	PWRCTRLPORT |= (1<<PWRCTRL)
+#define PWRCTRL_DISABLE	PWRCTRLPORT &= ~(1<<PWRCTRL)
+#define MRST_ENABLE	MRSTPORT &= ~(1<<MRST)
+#define MRST_DISABLE	MRSTPORT |= (1<<MRST)
+#define LEDBLUE_ON		LEDPORT &= ~(1<<LEDBLUE)
+#define LEDBLUE_OFF		LEDPORT |= (1<<LEDBLUE)
+#define LEDRED_ON		LEDPORT &= ~(1<<LEDRED)
+#define LEDRED_OFF		LEDPORT |= (1<<LEDRED)
+
+
+static void IO_init(void);
+static void blink(uint8_t n);
+
+///////////////////////////////
+
 /** Contains the current baud rate and other settings of the first virtual serial port. This must be retained as some
  *  operating systems will not open the port unless the settings can be set successfully.
  */
@@ -112,11 +140,13 @@ void Application_Jump_Check(void)
  */
 int main(void)
 {
+	IO_init();
+
 	/* Setup hardware required for the bootloader */
 	SetupHardware();
 
 	/* Turn on first LED on the board to indicate that the bootloader has started */
-	LEDs_SetAllLEDs(LEDS_LED1);
+	//LEDs_SetAllLEDs(LEDS_LED1);
 
 	/* Enable global interrupts so that the USB stack can function */
 	GlobalInterruptEnable();
@@ -130,6 +160,7 @@ int main(void)
 	/* Disconnect from the host - USB interface will be reset later along with the AVR */
 	USB_Detach();
 
+
 	/* Unlock the forced application start mode of the bootloader if it is restarted */
 	MagicBootKey = MAGIC_BOOT_KEY;
 
@@ -139,6 +170,39 @@ int main(void)
 	for (;;);
 }
 
+static void IO_init(void)
+{
+	// setup system clock prescaler to run at 8MHz
+  	CLKPR = (1<<CLKPCE);
+  	CLKPR = (1<<CLKPS0);
+
+	// setup PORTB
+	PORTB |= (1<<LEDBLUE)|(1<<LEDRED)|(1<<MRST);
+	DDRB |= (1<<LEDBLUE)|(1<<LEDRED)|(1<<MRST);
+
+	// setup PORTD
+	PORTD |= (1<<PWRCTRL);
+	DDRD |= (1<<PWRCTRL)|(1<<RXM);
+
+	blink(5);
+
+}
+
+static void blink(uint8_t n)
+{
+	LEDRED_OFF;
+
+	for (uint8_t i=0; i<n; i++) {
+		LEDBLUE_ON;
+		Delay_MS(150);
+		LEDBLUE_OFF;
+		Delay_MS(150);
+	}
+	LEDRED_ON;
+	LEDBLUE_ON;
+}
+
+
 /** Configures all hardware required for the bootloader. */
 static void SetupHardware(void)
 {
@@ -147,7 +211,7 @@ static void SetupHardware(void)
 	wdt_disable();
 
 	/* Disable clock division */
-	clock_prescale_set(clock_div_1);
+	clock_prescale_set(clock_div_2);
 
 	/* Relocate the interrupt vector table to the bootloader section */
 	MCUCR = (1 << IVCE);
@@ -155,7 +219,7 @@ static void SetupHardware(void)
 
 	/* Initialize the USB and other board hardware drivers */
 	USB_Init();
-	LEDs_Init();
+	//LEDs_Init();
 
 	/* Bootloader active LED toggle timer initialization */
 	TIMSK1 = (1 << TOIE1);
