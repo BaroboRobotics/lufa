@@ -203,9 +203,9 @@ const USB_Descriptor_String_t PROGMEM ManufacturerString =
  */
 const USB_Descriptor_String_t PROGMEM ProductString =
 {
-	.Header                 = {.Size = USB_STRING_LEN(24), .Type = DTYPE_String},
+	.Header                 = {.Size = USB_STRING_LEN(32), .Type = DTYPE_String},
 
-	.UnicodeString          = L"Linkbot USB-Serial Adapter"
+	.UnicodeString          = L"Barobo USB-Serial Adapter"
 };
 
 /** This function is called by the library when in device mode, and must be overridden (see library "USB Descriptors"
