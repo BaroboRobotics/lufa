@@ -203,7 +203,7 @@ const USB_Descriptor_String_t PROGMEM ManufacturerString =
  */
 const USB_Descriptor_String_t PROGMEM ProductString =
 {
-	.Header                 = {.Size = USB_STRING_LEN(32), .Type = DTYPE_String},
+	.Header                 = {.Size = USB_STRING_LEN(25), .Type = DTYPE_String},
 
 	.UnicodeString          = L"Barobo USB-Serial Adapter"
 };
